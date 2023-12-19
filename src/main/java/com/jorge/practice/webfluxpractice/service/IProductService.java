@@ -8,7 +8,7 @@ public interface IProductService {
     public Mono<Product> create(Product product);
     public Flux<Product> findAll();
     public Mono<Product> findById(Long id);
-    public Mono<Void> update(long id, Product product);
-    public Mono<Void> delete(Long id);
+    public Mono<Product> update(long id, Product product);
+    public Mono<String> delete(Long id);
 
 }
