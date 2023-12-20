@@ -26,7 +26,8 @@ public class ProductServiceImpl implements IProductService {
 
     @Override
     public Flux<Product> findAll() {
-        return productRepository.findAll();
+        return productRepository.findAll()
+                .switchIfEmpty(Mono.error(new RuntimeException("Products list not found")));
     }
 
     @Override
