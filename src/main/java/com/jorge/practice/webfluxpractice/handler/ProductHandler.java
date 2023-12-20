@@ -51,7 +51,7 @@ public class ProductHandler {
     public Mono<ServerResponse> create(ServerRequest request) {
         return request.bodyToMono(ProductDto.class)
                 .flatMap(productService::create)
-                .flatMap(p -> ServerResponse.ok()
+                .flatMap(p -> ServerResponse.created(request.uriBuilder().path("/{id}").build(p.getId()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(p))
                 .onErrorResume(ProductNameUsedException.class, e -> ServerResponse
