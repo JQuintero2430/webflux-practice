@@ -1,6 +1,6 @@
 package com.jorge.practice.webfluxpractice.handler;
 
-import com.jorge.practice.webfluxpractice.entity.Product;
+import com.jorge.practice.webfluxpractice.entity.dto.ProductDto;
 import com.jorge.practice.webfluxpractice.exception.ProductListEmptyException;
 import com.jorge.practice.webfluxpractice.exception.ProductNameUsedException;
 import com.jorge.practice.webfluxpractice.exception.ProductNotFoundException;
@@ -49,7 +49,7 @@ public class ProductHandler {
     }
 
     public Mono<ServerResponse> create(ServerRequest request) {
-        return request.bodyToMono(Product.class)
+        return request.bodyToMono(ProductDto.class)
                 .flatMap(productService::create)
                 .flatMap(p -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
@@ -63,7 +63,7 @@ public class ProductHandler {
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
-        return request.bodyToMono(Product.class)
+        return request.bodyToMono(ProductDto.class)
                 .flatMap(product -> productService
                         .update(Long.parseLong(request.pathVariable("id")), product))
                 .flatMap(p -> ServerResponse.ok()

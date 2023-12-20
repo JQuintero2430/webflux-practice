@@ -16,7 +16,7 @@ public class Product {
     @Id
     private Long id;
     private String name;
-    private float price;
+    private Double price;
 
 
 }
