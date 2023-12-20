@@ -1,6 +1,9 @@
 package com.jorge.practice.webfluxpractice.handler;
 
 import com.jorge.practice.webfluxpractice.entity.Product;
+import com.jorge.practice.webfluxpractice.exception.ProductListEmptyException;
+import com.jorge.practice.webfluxpractice.exception.ProductNameUsedException;
+import com.jorge.practice.webfluxpractice.exception.ProductNotFoundException;
 import com.jorge.practice.webfluxpractice.service.IProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +13,8 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -17,34 +22,77 @@ public class ProductHandler {
     private final IProductService productService;
 
     public Mono<ServerResponse> findAll(ServerRequest request) {
-        return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(productService.findAll(), Product.class);
+        return productService.findAll()
+                .collectList()
+                .flatMap(products -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(products))
+                .onErrorResume(ProductListEmptyException.class, e -> ServerResponse
+                        .status(e.getStatus())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(Map.of("error", true,
+                                "status", e.getStatus().value(),
+                                "message", e.getMessage())));
     }
 
     public Mono<ServerResponse> findById(ServerRequest request) {
-        return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(productService.findById(Long.valueOf(request.pathVariable("id"))), Product.class);
+        return productService.findById(Long.valueOf(request.pathVariable("id")))
+                .flatMap(p -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(p))
+                .onErrorResume(ProductNotFoundException.class, e -> ServerResponse
+                        .status(e.getStatus())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(Map.of("error", true,
+                                "status", e.getStatus().value(),
+                                "message", e.getMessage())));
     }
 
     public Mono<ServerResponse> create(ServerRequest request) {
         return request.bodyToMono(Product.class)
+                .flatMap(productService::create)
                 .flatMap(p -> ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(productService.create(p), Product.class));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(p))
+                .onErrorResume(ProductNameUsedException.class, e -> ServerResponse
+                        .status(e.getStatus())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(Map.of("error", true,
+                                "status", e.getStatus().value(),
+                                "message", e.getMessage())));
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
         return request.bodyToMono(Product.class)
+                .flatMap(product -> productService
+                        .update(Long.parseLong(request.pathVariable("id")), product))
                 .flatMap(p -> ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(productService.update(Long.parseLong(request.pathVariable("id")), p), Product.class));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(p))
+                .onErrorResume(ProductNameUsedException.class, e -> ServerResponse
+                        .status(e.getStatus())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(Map.of("error", true,
+                                "status", e.getStatus().value(),
+                                "message", e.getMessage())))
+                .onErrorResume(ProductNotFoundException.class, e -> ServerResponse
+                        .status(e.getStatus())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(Map.of("error", true,
+                                "status", e.getStatus().value(),
+                                "message", e.getMessage())));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
-        return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(productService.delete(Long.parseLong(request.pathVariable("id"))), Product.class);
+        return productService.delete(Long.valueOf(request.pathVariable("id")))
+                .flatMap(p -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(p))
+                .onErrorResume(ProductNotFoundException.class, e -> ServerResponse
+                        .status(e.getStatus())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(Map.of("error", true,
+                                "status", e.getStatus().value(),
+                                "message", e.getMessage())));
     }
 }
