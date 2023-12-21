@@ -2,9 +2,7 @@ package com.jorge.practice.webfluxpractice.service.impl;
 
 import com.jorge.practice.webfluxpractice.entity.Product;
 import com.jorge.practice.webfluxpractice.entity.dto.ProductDto;
-import com.jorge.practice.webfluxpractice.exception.ProductListEmptyException;
-import com.jorge.practice.webfluxpractice.exception.ProductNameUsedException;
-import com.jorge.practice.webfluxpractice.exception.ProductNotFoundException;
+import com.jorge.practice.webfluxpractice.exception.ProductException;
 import com.jorge.practice.webfluxpractice.mapper.ProductMapper;
 import com.jorge.practice.webfluxpractice.repository.IProductRepository;
 import org.junit.jupiter.api.Test;
@@ -47,7 +45,7 @@ class ProductServiceImplTest {
         when(productRepository.findByName(any(String.class))).thenReturn(Mono.just(product));
 
         StepVerifier.create(productService.create(productDto))
-                .expectErrorMatches(throwable -> throwable instanceof ProductNameUsedException
+                .expectErrorMatches(throwable -> throwable instanceof ProductException
                         && throwable.getMessage().equals("Product name is already used"))
                 .verify();
     }
@@ -56,7 +54,7 @@ class ProductServiceImplTest {
     void findAll() {
         when(productRepository.findAll()).thenReturn(Flux.empty());
         StepVerifier.create(productService.findAll())
-                .expectErrorMatches(throwable -> throwable instanceof ProductListEmptyException
+                .expectErrorMatches(throwable -> throwable instanceof ProductException
                         && throwable.getMessage().equals("Products list is empty"))
                 .verify();
 
@@ -79,7 +77,7 @@ class ProductServiceImplTest {
 
         when(productRepository.findById(any(Long.class))).thenReturn(Mono.empty());
         StepVerifier.create(productService.findById(1L))
-                .expectErrorMatches(throwable -> throwable instanceof ProductNotFoundException
+                .expectErrorMatches(throwable -> throwable instanceof ProductException
                         && throwable.getMessage().equals("Product not found"))
                 .verify();
     }
@@ -97,7 +95,7 @@ class ProductServiceImplTest {
 
         when(productRepository.findById(any(Long.class))).thenReturn(Mono.empty());
         StepVerifier.create(productService.update(1L, productDto2))
-                .expectErrorMatches(throwable -> throwable instanceof ProductNotFoundException
+                .expectErrorMatches(throwable -> throwable instanceof ProductException
                         && throwable.getMessage().equals("Product not found"))
                 .verify();
     }
@@ -113,7 +111,7 @@ class ProductServiceImplTest {
 
         when(productRepository.findById(any(Long.class))).thenReturn(Mono.empty());
         StepVerifier.create(productService.delete(1L))
-                .expectErrorMatches(throwable -> throwable instanceof ProductNotFoundException
+                .expectErrorMatches(throwable -> throwable instanceof ProductException
                         && throwable.getMessage().equals("Product not found"))
                 .verify();
     }

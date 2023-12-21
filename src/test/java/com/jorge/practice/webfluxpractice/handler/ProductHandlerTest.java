@@ -3,6 +3,7 @@ package com.jorge.practice.webfluxpractice.handler;
 import com.jorge.practice.webfluxpractice.entity.Product;
 import com.jorge.practice.webfluxpractice.entity.dto.ProductDto;
 import com.jorge.practice.webfluxpractice.service.IProductService;
+import com.jorge.practice.webfluxpractice.validation.ObjectValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,24 +15,22 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ProductHandlerTest {
-    @Mock
-    private IProductService productService;
-
-    @Mock
-    private ServerRequest serverRequest;
-
-    @InjectMocks
-    private ProductHandler productHandler;
-
     private final Product testProduct = new Product(1L, "Test product", 100.0);
     private final ProductDto testProductDto = new ProductDto(1L, "Test product", 100.0);
+    @Mock
+    private IProductService productService;
+    @Mock
+    private ServerRequest serverRequest;
+    @Mock
+    private ObjectValidator objectValidator;
+    @InjectMocks
+    private ProductHandler productHandler;
 
     @Test
     void findAll() {
@@ -54,7 +53,6 @@ class ProductHandlerTest {
         StepVerifier.create(response)
                 .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
                 .verifyComplete();
-
     }
 
     @Test
