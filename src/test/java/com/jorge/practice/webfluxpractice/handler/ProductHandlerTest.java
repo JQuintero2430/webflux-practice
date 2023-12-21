@@ -8,12 +8,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import java.net.URI;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -37,6 +42,24 @@ class ProductHandlerTest {
         when(productService.findAll()).thenReturn(Flux.just(testProductDto));
 
         Mono<ServerResponse> response = productHandler.findAll(serverRequest);
+
+        StepVerifier.create(response)
+                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
+                .verifyComplete();
+    }
+
+    @Test
+    void create() {
+        UriComponentsBuilder uriBuilder = Mockito.mock(UriComponentsBuilder.class);
+        when(uriBuilder.path(any(String.class))).thenReturn(uriBuilder);
+        when(uriBuilder.build(Optional.ofNullable(any()))).thenReturn(URI.create("http://localhost/test/1"));
+
+        ServerRequest serverRequest = Mockito.mock(ServerRequest.class);
+        when(serverRequest.bodyToMono(ProductDto.class)).thenReturn(Mono.just(testProductDto));
+        when(serverRequest.uriBuilder()).thenReturn(uriBuilder);
+        when(productService.create(any(ProductDto.class))).thenReturn(Mono.just(testProduct));
+
+        Mono<ServerResponse> response = productHandler.create(serverRequest);
 
         StepVerifier.create(response)
                 .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
